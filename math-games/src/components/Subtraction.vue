@@ -35,8 +35,6 @@ function timeout() {
   state.value = "finished";
 }
 
-shuffle();
-
 function guess(n) {
   if (correct.value) {
     score.total += 1;
@@ -55,6 +53,14 @@ function guess(n) {
   }
 }
 
+function start() {
+  score.right = 0;
+  score.total = 0;
+  correct.value = true;
+  shuffle();
+  state.value = "RUNNING";
+}
+
 </script>
 
 <template>
@@ -62,7 +68,7 @@ function guess(n) {
 <div class="card">
   <div v-if="state == 'WAITING'">
     <h1>Ready?</h1>
-    <button class="btn btn-primary start" @click='state="RUNNING"' style='white-space: nowrap;'>GO!</button>
+    <button class="btn btn-primary start" @click='start' style='white-space: nowrap;'>GO!</button>
   </div>
   <div v-if='state == "RUNNING"'>
     <h1 class='card-header'>Score <div class='float-right '>{{score.right}} / {{score.total}}</div></h1>
@@ -90,6 +96,7 @@ function guess(n) {
     <div class='card-body'>
       <h1>Final Score</h1>
       <h1>{{score.right}} out of {{score.total}}</h1>
+      <button class="btn btn-primary start" @click='start' style='white-space: nowrap;'>Play Again?</button>
     </div>
   </div>
 </div>
