@@ -1,4 +1,6 @@
 <script setup>
+import Timer from './Timer.vue'
+
 import { ref, reactive } from 'vue'
 import _ from 'lodash'
 
@@ -15,6 +17,8 @@ const score = reactive({
 const guesses = reactive([0,1,2,3]);
 const correct = ref(true);
 
+const state = ref("WAITING");
+
 function shuffle() {
   const d = 1 + Math.floor(Math.random() * 9);
   ops.b = 1 + Math.floor(Math.random() * 9);
@@ -27,9 +31,16 @@ function shuffle() {
   }
 }
 
+function timeout() {
+  state.value = "finished";
+}
+
 shuffle();
 
 function guess(n) {
+  if (correct.value) {
+    score.total += 1;
+  }
   if (ops.a - ops.b == n) {
     if (correct.value) {
       score.right += 1;
@@ -40,7 +51,6 @@ function guess(n) {
   }
 
   if (correct.value) {
-    score.total += 1;
     shuffle();
   }
 }
@@ -50,22 +60,36 @@ function guess(n) {
 <template>
 
 <div class="card">
-  <h1 class='card-header'>Score <div class='float-right '>{{score.right}} / {{score.total}}</div></h1>
-    
-  <div class='card-body'>
-    <h1>
-      <span class='op-key'></span>
-      <span class='operand'>{{ops.a}}</span>
-    </h1>
-    <h1>
-      <span class='op-key'>-</span>
-      <span class='operand'>{{ops.b}}</span>
-    </h1>
+  <div v-if="state == 'WAITING'">
+    <h1>Ready?</h1>
+    <button class="btn btn-primary start" @click='state="RUNNING"' style='white-space: nowrap;'>GO!</button>
+  </div>
+  <div v-if='state == "RUNNING"'>
+    <h1 class='card-header'>Score <div class='float-right '>{{score.right}} / {{score.total}}</div></h1>
+      
+    <div class='card-body'>
+      <h1>
+        <span class='op-key'></span>
+        <span class='operand'>{{ops.a}}</span>
+      </h1>
+      <h1>
+        <span class='op-key'>-</span>
+        <span class='operand'>{{ops.b}}</span>
+      </h1>
 
-    <div class="d-inline-flex justify-content-center">
-      <div v-for='g in guesses' v-key='g'>
-        <button class="btn ml-2" :class="{'btn-primary': correct || g==ops.a-ops.b, 'btn-secondary': !correct && g!=ops.a-ops.b}" @click="guess(g)">{{g}}</button>
+      <div class="d-inline-flex justify-content-center">
+        <div v-for='g in guesses' v-key='g'>
+          <button class="btn guess" :class="{'btn-primary': correct || g==ops.a-ops.b, 'btn-secondary': !correct && g!=ops.a-ops.b}" @click="guess(g)">{{g}}</button>
+        </div>
       </div>
+      <hr>
+      <timer @end='state = "FINISHED"'></timer>
+    </div>
+  </div>
+  <div v-if='state == "FINISHED"'>
+    <div class='card-body'>
+      <h1>Final Score</h1>
+      <h1>{{score.right}} out of {{score.total}}</h1>
     </div>
   </div>
 </div>
@@ -74,15 +98,23 @@ function guess(n) {
 
 <style scoped>
 .card {
+  height: 500px;
   width: 600px;
 }
 .card-header {
   text-align: left;
 }
 
-.btn {
+.start {
+  padding-left: 20px;
+  padding-right: 20px;
+  font-size: 3em;
+}
+
+.guess {
   font-size: 3em;
   width: 2em;
+  margin-left: 2px;
 }
 
 .op-key {
@@ -94,4 +126,9 @@ function guess(n) {
   width: 75px;
   text-align: right;
 }
+
+.timer {
+  font-size: 3em;
+}
+
 </style>
